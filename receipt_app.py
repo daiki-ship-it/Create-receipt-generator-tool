@@ -714,6 +714,12 @@ class ReceiptHandler(BaseHTTPRequestHandler):
 # ──────────────────────────────────────────────────────────
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--no-browser', action='store_true',
+                        help='起動時にブラウザを開かない（バックグラウンド起動用）')
+    args = parser.parse_args()
+
     server = None
     for p in range(8765, 8775):
         try:
@@ -731,12 +737,12 @@ def main():
     print(f'  URL: {url}')
     print(f'  終了: Ctrl+C\n')
 
-    def open_browser():
-        import time
-        time.sleep(0.6)
-        webbrowser.open(url)
-
-    threading.Thread(target=open_browser, daemon=True).start()
+    if not args.no_browser:
+        def open_browser():
+            import time
+            time.sleep(0.6)
+            webbrowser.open(url)
+        threading.Thread(target=open_browser, daemon=True).start()
 
     try:
         server.serve_forever()
