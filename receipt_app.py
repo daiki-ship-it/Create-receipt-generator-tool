@@ -10,6 +10,10 @@
   cd このフォルダ
   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
   .venv/bin/python3 receipt_app.py
+
+直接起動:
+  python3 receipt_app.py
+  python3 receipt_app.py --no-browser   （ブラウザを開かない・launchd 等向け）
 """
 
 import io
@@ -21,17 +25,18 @@ import urllib.parse
 from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-
-class ReceiptHTTPServer(HTTPServer):
-    """直前に終了した直後でも同じポートを使いやすくする"""
-    allow_reuse_address = True
-
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.lib.colors import black, HexColor
+
+
+class ReceiptHTTPServer(HTTPServer):
+    """直前に終了した直後でも同じポートを使いやすくする"""
+    allow_reuse_address = True
+
 
 # 日本語フォント登録
 pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))
@@ -726,6 +731,12 @@ class ReceiptHandler(BaseHTTPRequestHandler):
 # ──────────────────────────────────────────────────────────
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--no-browser', action='store_true',
+                        help='起動時にブラウザを開かない（バックグラウンド起動用）')
+    args = parser.parse_args()
+
     server = None
     for p in range(8765, 8775):
         try:
@@ -743,12 +754,12 @@ def main():
     print(f'  URL: {url}')
     print(f'  終了: Ctrl+C\n')
 
-    def open_browser():
-        import time
-        time.sleep(0.6)
-        webbrowser.open(url)
-
-    threading.Thread(target=open_browser, daemon=True).start()
+    if not args.no_browser:
+        def open_browser():
+            import time
+            time.sleep(0.6)
+            webbrowser.open(url)
+        threading.Thread(target=open_browser, daemon=True).start()
 
     try:
         server.serve_forever()
