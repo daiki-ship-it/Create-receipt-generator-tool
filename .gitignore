@@ -1,0 +1,12 @@
+# ローカル専用（仮想環境）
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# 発行履歴（氏名・金額など個人情報を含むためリポジトリに含めない）
+receipt_history.json
